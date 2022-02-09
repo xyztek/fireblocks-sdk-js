@@ -3,10 +3,10 @@ import axios, { AxiosInstance } from "axios";
 
 export class ApiClientProxy {
   private axiosInstance: AxiosInstance;
-  private token: string;
+  private apiKey: string | null = null;
+  private token: string | null = null;
 
   constructor(
-    private apiKey: string,
     private apiBaseUrl: string,
     private options: { timeoutInMs?: number }
   ) {
@@ -23,8 +23,14 @@ export class ApiClientProxy {
     return this.token;
   }
 
-  public injectToken(token: string) {
+  public injectCredentials(apiKey: string, token: string) {
+    this.apiKey = apiKey;
     this.token = token;
+  }
+
+  public resetCredentials() {
+    this.apiKey = null;
+    this.token = null;
   }
 
   public async issueGetRequest(path: string, pageMode: boolean = false) {
