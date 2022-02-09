@@ -68,7 +68,6 @@ export class FireblocksSDKProxy {
    * @param sdkOptions
    */
   constructor(
-    apiKey: string,
     apiBaseUrl: string = "https://api.fireblocks.io",
     sdkOptions?: SDKOptions
   ) {
@@ -76,7 +75,7 @@ export class FireblocksSDKProxy {
       this.apiBaseUrl = apiBaseUrl;
     }
 
-    this.apiClient = new ApiClientProxy(apiKey, this.apiBaseUrl, {
+    this.apiClient = new ApiClientProxy(this.apiBaseUrl, {
       timeoutInMs: sdkOptions?.timeoutInMs,
     });
   }
@@ -84,17 +83,26 @@ export class FireblocksSDKProxy {
   /**
    * Injects a JWT token to ApiClientProxy, and then applies `args` to the
    * proxied function.
-   * @param token   JWT Token
    * @param fn      Name of the function call to proxy
    * @param args    Array of arguments to pass to the proxied function
+   * @param apiKey  API Key
+   * @param token   JWT Token
    */
   public async proxy(
-    token: string,
     fn: ProxyKeys<FireblocksSDKProxy>,
-    args: Array<unknown> = []
+    args: Array<unknown> = [],
+    apiKey: string,
+    token: string
   ): Promise<unknown> {
-    this.apiClient.injectToken(token);
-    return this[fn].apply(this, args);
+    // Inject credentials after every request.
+    this.apiClient.injectCredentials(apiKey, token);
+
+    const result = this[fn].apply(this, args);
+
+    // Reset credentials after every request.
+    this.apiClient.resetCredentials();
+
+    return result;
   }
 
   /**
