@@ -3,8 +3,8 @@ import axios, { AxiosInstance } from "axios";
 
 export class ApiClientProxy {
   private axiosInstance: AxiosInstance;
-  private apiKey: string | null = null;
-  private token: string | null = null;
+  private apiKey: string | undefined = undefined;
+  private token: string | undefined = undefined;
 
   constructor(
     private apiBaseUrl: string,
@@ -29,8 +29,8 @@ export class ApiClientProxy {
   }
 
   public resetCredentials() {
-    this.apiKey = null;
-    this.token = null;
+    this.apiKey = undefined;
+    this.token = undefined;
   }
 
   public async issueGetRequest(path: string, pageMode: boolean = false) {
