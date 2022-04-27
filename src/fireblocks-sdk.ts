@@ -41,7 +41,9 @@ import {
     TransactionPageFilter,
     InternalWalletAsset,
     ExternalWalletAsset,
-    OffExchangeEntityResponse
+    OffExchangeEntityResponse,
+    PagedVaultAccountsResponse,
+    PagedVaultAccountsRequestFilters
 } from "./types";
 
 export * from "./types";
@@ -87,6 +89,14 @@ export class FireblocksSDK {
     public async getVaultAccounts(filter?: VaultAccountsFilter): Promise<VaultAccountResponse[]> {
         const url = `/v1/vault/accounts?${queryString.stringify(filter)}`;
         return await this.apiClient.issueGetRequest(url);
+    }
+
+    /**
+     * Gets a list of vault accounts per page matching the given filter or path
+     * @param pagedVaultAccountsRequestFilters Filters for the first request
+     */
+    public async getVaultAccountsWithPageInfo(pagedVaultAccountsRequestFilters: PagedVaultAccountsRequestFilters): Promise<PagedVaultAccountsResponse> {
+        return await this.apiClient.issueGetRequest(`/v1/vault/accounts_paged?${queryString.stringify(pagedVaultAccountsRequestFilters)}`);
     }
 
     /**
@@ -211,6 +221,15 @@ export class FireblocksSDK {
      */
     public async getExchangeAccountById(exchangeAccountId: string): Promise<ExchangeResponse> {
         return await this.apiClient.issueGetRequest(`/v1/exchange_accounts/${exchangeAccountId}`);
+    }
+
+    /**
+     * Gets a single asset within an Exchange Account
+     * @param exchangeAccountId The exchange account ID
+     * @param assetId The ID of the asset
+     */
+    public async getExchangeAsset(exchangeAccountId: string, assetId: string): Promise<ExchangeResponse> {
+        return await this.apiClient.issueGetRequest(`/v1/exchange_accounts/${exchangeAccountId}/${assetId}`);
     }
 
     /**
@@ -745,8 +764,12 @@ export class FireblocksSDK {
     /**
      * Get configuration and status of the Gas Station account
      */
-    public async getGasStationInfo(): Promise<GasStationInfo> {
-        const url = `/v1/gas_station`;
+    public async getGasStationInfo(assetId?: string): Promise<GasStationInfo> {
+        let url = `/v1/gas_station`;
+
+        if (assetId) {
+            url += `/${assetId}`;
+        }
 
         return await this.apiClient.issueGetRequest(url);
     }
@@ -754,8 +777,12 @@ export class FireblocksSDK {
     /**
      * Set configuration of the Gas Station account
      */
-    public async setGasStationConfiguration(gasThreshold: string, gasCap: string, maxGasPrice?: string): Promise<OperationSuccessResponse> {
-        const url = `/v1/gas_station/configuration`;
+    public async setGasStationConfiguration(gasThreshold: string, gasCap: string, maxGasPrice?: string, assetId?: string): Promise<OperationSuccessResponse> {
+        let url = `/v1/gas_station/configuration`;
+
+        if (assetId) {
+            url += `/${assetId}`;
+        }
 
         const body = {gasThreshold, gasCap, maxGasPrice};
 
